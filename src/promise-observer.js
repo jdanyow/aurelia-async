@@ -50,8 +50,7 @@ export class PromiseObserver {
     }
 
     this.lastValue = value;
-		console.log(`notifying ${value === null ? 'null' : value === undefined ? 'undefined' : JSON.stringify(value)}`);
-    this.callback(value);
+		this.callback(value);
   }
 
 	subscribe(callback) {

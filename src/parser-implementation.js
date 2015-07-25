@@ -16,26 +16,20 @@ export class ParserImplementation extends StandardParserImplementation {
     result = result || this.parsePrimary();
 
     while (true) {
+      var async, args;
       if (this.optional('.')) {
-				
-				// <modified code>
-        if (this.optional('.')) {
-          let command = this.peek.text;
-          if (command !== 'value' && command !== 'ready') {
+        async = this.optional('.');
+        var name = this.peek.text;
+        this.advance();
+        if (async) {
+          if (name !== 'value' && name !== 'ready') {
             throw new Error('Expected "..value" or "..ready".');
           }
-          result = new AsyncExpression(result, command === 'ready');
-          this.advance();
+          result = new AsyncExpression(result, name === 'ready');
           return this.parseAccessOrCallMember(result);
         }
-				// </modified code>
-				
-        var name = this.peek.text;
-
-        this.advance();
-
         if (this.optional('(')) {
-          var args = this.parseExpressionList(')');
+          args = this.parseExpressionList(')');
           this.expect(')');
           result = new CallMember(result, name, args);
         } else {
@@ -46,7 +40,7 @@ export class ParserImplementation extends StandardParserImplementation {
         this.expect(']');
         result = new AccessKeyed(result, key);
       } else if (this.optional('(')) {
-        var args = this.parseExpressionList(')');
+        args = this.parseExpressionList(')');
         this.expect(')');
         result = new CallFunction(result, args);
       } else {
