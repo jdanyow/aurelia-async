@@ -33,7 +33,7 @@ The foo is ${getFoo()..ready ? getFoo()..value : '(resolving...)'}
 
 ## Get Started
 
-1. Install aurelia-computed:
+1. Install aurelia-async:
 
   ```bash
   jspm install aurelia-async
