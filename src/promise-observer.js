@@ -61,7 +61,6 @@ export class PromiseObserver {
 	dispose() {
 		this.callback = null;
 		this.promise = null;
-    this.scope = null;
     this.lastValue = null;
 	}
 }
