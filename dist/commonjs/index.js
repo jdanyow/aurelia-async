@@ -194,7 +194,6 @@ var PromiseObserver = (function () {
   PromiseObserver.prototype.dispose = function dispose() {
     this.callback = null;
     this.promise = null;
-    this.scope = null;
     this.lastValue = null;
   };
 

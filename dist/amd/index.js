@@ -193,7 +193,6 @@ define(['exports', 'aurelia-binding'], function (exports, _aureliaBinding) {
     PromiseObserver.prototype.dispose = function dispose() {
       this.callback = null;
       this.promise = null;
-      this.scope = null;
       this.lastValue = null;
     };
 

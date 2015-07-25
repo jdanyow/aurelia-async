@@ -205,7 +205,6 @@ System.register(['aurelia-binding'], function (_export) {
         PromiseObserver.prototype.dispose = function dispose() {
           this.callback = null;
           this.promise = null;
-          this.scope = null;
           this.lastValue = null;
         };
 
