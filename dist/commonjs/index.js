@@ -5,7 +5,7 @@ exports.configure = configure;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _aureliaBinding = require('aurelia-binding');
 
@@ -21,9 +21,9 @@ var AsyncExpression = (function (_Expression) {
   }
 
   AsyncExpression.prototype.evaluate = function evaluate(scope, valueConverters) {
-    var promise = this.expression.evaluate(scope);
-    if (promise) {
-      return this.ready ? promise.hasOwnProperty('__value') : promise.__value;
+    var observable = this.expression.evaluate(scope);
+    if (observable) {
+      return this.ready ? observable.hasOwnProperty('__value') : observable.__value;
     }
     return this.ready ? false : undefined;
   };
@@ -37,7 +37,7 @@ var AsyncExpression = (function (_Expression) {
     var info = this.expression.connect(binding, scope);
     return {
       value: info.value ? info.value.__value : undefined,
-      observer: new PromiseObserver(info.value, info.observer, this.ready)
+      observer: new AsyncObserver(info.value, info.observer, this.ready)
     };
   };
 
@@ -46,8 +46,8 @@ var AsyncExpression = (function (_Expression) {
 
 exports.AsyncExpression = AsyncExpression;
 
-function configure(aurelia) {
-  aurelia.container.autoRegister(Parser, _aureliaBinding.Parser);
+function configure(frameworkConfig) {
+  frameworkConfig.container.autoRegister(Parser, _aureliaBinding.Parser);
 }
 
 var Parser = (function (_StandardParser) {
@@ -121,22 +121,22 @@ var ParserImplementation = (function (_StandardParserImplementation) {
 
 exports.ParserImplementation = ParserImplementation;
 
-var PromiseObserver = (function () {
-  function PromiseObserver(promise, observer, ready) {
+var AsyncObserver = (function () {
+  function AsyncObserver(observable, observer, ready) {
     var _this = this;
 
-    _classCallCheck(this, PromiseObserver);
+    _classCallCheck(this, AsyncObserver);
 
-    this.promise = promise;
+    this.observable = observable;
     this.ready = ready;
     this.lastValue = this.getCurrent();
 
     if (observer) {
-      observer.subscribe(function (promise) {
-        if (promise === _this.promise) {
+      observer.subscribe(function (observable) {
+        if (observable === _this.observable) {
           return;
         }
-        _this.promise = promise;
+        _this.observable = observable;
         _this.attach();
         _this.notify();
       });
@@ -145,33 +145,35 @@ var PromiseObserver = (function () {
     this.attach();
   }
 
-  PromiseObserver.prototype.attach = function attach() {
+  AsyncObserver.prototype.attach = function attach() {
     var _this2 = this;
 
-    var promise = this.promise;
-    if (!promise) {
+    var observable = this.observable;
+    if (!observable) {
       return;
     }
-    if (!promise.then) {
-      throw new Error('Promise object has no "then" method.');
+    var subscribe = observable.subscribeOnNext || observable.then;
+    if (subscribe) {
+      subscribe.call(observable, function (value) {
+        if (observable !== _this2.observable) {
+          return;
+        }
+        observable.__value = value;
+        _this2.notify();
+      });
+      return;
     }
-    promise.then(function (value) {
-      if (promise !== _this2.promise) {
-        return;
-      }
-      promise.__value = value;
-      _this2.notify();
-    });
+    throw new Error('Object is not "promise-like" or "observable-like".');
   };
 
-  PromiseObserver.prototype.getCurrent = function getCurrent() {
-    if (this.promise) {
-      return this.ready ? this.promise.hasOwnProperty('__value') : this.promise.__value;
+  AsyncObserver.prototype.getCurrent = function getCurrent() {
+    if (this.observable) {
+      return this.ready ? this.observable.hasOwnProperty('__value') : this.observable.__value;
     }
     return this.ready ? false : undefined;
   };
 
-  PromiseObserver.prototype.notify = function notify() {
+  AsyncObserver.prototype.notify = function notify() {
     var value = this.getCurrent();
 
     if (!this.callback || value === this.lastValue) {
@@ -182,7 +184,7 @@ var PromiseObserver = (function () {
     this.callback(value);
   };
 
-  PromiseObserver.prototype.subscribe = function subscribe(callback) {
+  AsyncObserver.prototype.subscribe = function subscribe(callback) {
     var _this3 = this;
 
     this.callback = callback;
@@ -191,13 +193,13 @@ var PromiseObserver = (function () {
     };
   };
 
-  PromiseObserver.prototype.dispose = function dispose() {
+  AsyncObserver.prototype.dispose = function dispose() {
     this.callback = null;
-    this.promise = null;
+    this.observable = null;
     this.lastValue = null;
   };
 
-  return PromiseObserver;
+  return AsyncObserver;
 })();
 
-exports.PromiseObserver = PromiseObserver;
+exports.AsyncObserver = AsyncObserver;

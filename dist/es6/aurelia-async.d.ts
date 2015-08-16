@@ -6,7 +6,7 @@ declare module 'aurelia-async' {
     accept(visitor: any): any;
     connect(binding: any, scope: any): any;
   }
-  export function configure(aurelia: any): any;
+  export function configure(frameworkConfig: any): any;
   
   /*
   * Overrides the standard parser's parse method to use our custom ParserImplementation.
@@ -21,8 +21,8 @@ declare module 'aurelia-async' {
   export class ParserImplementation extends StandardParserImplementation {
     parseAccessOrCallMember(result: any): any;
   }
-  export class PromiseObserver {
-    constructor(promise: any, observer: any, ready: any);
+  export class AsyncObserver {
+    constructor(observable: any, observer: any, ready: any);
     attach(): any;
     getCurrent(): any;
     notify(): any;

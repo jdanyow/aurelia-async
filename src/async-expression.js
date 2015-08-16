@@ -1,5 +1,5 @@
 import {Expression} from 'aurelia-binding';
-import {PromiseObserver} from './promise-observer';
+import {AsyncObserver} from './async-observer';
 
 export class AsyncExpression extends Expression {
   constructor(expression, ready) {
@@ -9,9 +9,9 @@ export class AsyncExpression extends Expression {
   }
 
   evaluate(scope, valueConverters) {
-    var promise = this.expression.evaluate(scope);
-    if (promise) {
-      return this.ready ? promise.hasOwnProperty('__value') : promise.__value;
+    var observable = this.expression.evaluate(scope);
+    if (observable) {
+      return this.ready ? observable.hasOwnProperty('__value') : observable.__value;
     }
     return this.ready ? false : undefined;
   }
@@ -25,7 +25,7 @@ export class AsyncExpression extends Expression {
     var info = this.expression.connect(binding, scope);
     return {
       value: info.value ? info.value.__value : undefined,
-      observer: new PromiseObserver(info.value, info.observer, this.ready)
+      observer: new AsyncObserver(info.value, info.observer, this.ready)
     };
   }
 }

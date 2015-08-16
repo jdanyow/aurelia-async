@@ -8,9 +8,9 @@ export class AsyncExpression extends Expression {
   }
 
   evaluate(scope, valueConverters) {
-    var promise = this.expression.evaluate(scope);
-    if (promise) {
-      return this.ready ? promise.hasOwnProperty('__value') : promise.__value;
+    var observable = this.expression.evaluate(scope);
+    if (observable) {
+      return this.ready ? observable.hasOwnProperty('__value') : observable.__value;
     }
     return this.ready ? false : undefined;
   }
@@ -24,14 +24,15 @@ export class AsyncExpression extends Expression {
     var info = this.expression.connect(binding, scope);
     return {
       value: info.value ? info.value.__value : undefined,
-      observer: new PromiseObserver(info.value, info.observer, this.ready)
+      observer: new AsyncObserver(info.value, info.observer, this.ready)
     };
   }
 }
 
-export function configure(aurelia) {
-  aurelia.container.autoRegister(Parser, StandardParser);
+export function configure(frameworkConfig) {
+  frameworkConfig.container.autoRegister(Parser, StandardParser);
 }
+
 /*
 * Overrides the standard parser's parse method to use our custom ParserImplementation.
 */
@@ -84,18 +85,18 @@ export class ParserImplementation extends StandardParserImplementation {
     }
   }
 }
-export class PromiseObserver {
-	constructor(promise, observer, ready) {
-		this.promise = promise;
+export class AsyncObserver {
+	constructor(observable, observer, ready) {
+		this.observable = observable;
     this.ready = ready;
     this.lastValue = this.getCurrent();
 
 		if (observer) {
-			observer.subscribe(promise => {
-        if (promise === this.promise) {
+			observer.subscribe(observable => {
+        if (observable === this.observable) {
 					return;
 				}
-				this.promise = promise;        
+				this.observable = observable;
 				this.attach();
         this.notify();
 			});
@@ -103,34 +104,36 @@ export class PromiseObserver {
 
 		this.attach();
 	}
-	
+
 	attach() {
-		var promise = this.promise;
-		if (!promise) {
+		var observable = this.observable;
+		if (!observable) {
 			return;
-		}    
-    if (!promise.then) {
-      throw new Error('Promise object has no "then" method.');
-    }    
-		promise.then(value => {
-			if (promise !== this.promise) {
-				return;
-			}      
-      promise.__value = value;
-			this.notify();
-		});
+		}
+		var subscribe = observable.subscribeOnNext || observable.then;
+    if (subscribe) {
+			subscribe.call(observable, value => {
+				if (observable !== this.observable) {
+					return;
+				}
+	      observable.__value = value;
+				this.notify();
+			});
+			return;
+		}
+		throw new Error('Object is not "promise-like" or "observable-like".');
 	}
-	
+
 	getCurrent() {
-		if (this.promise) {
-			return this.ready ? this.promise.hasOwnProperty('__value') : this.promise.__value;
+		if (this.observable) {
+			return this.ready ? this.observable.hasOwnProperty('__value') : this.observable.__value;
 		}
 		return this.ready ? false : undefined;
 	}
-  
+
   notify() {
-		var value = this.getCurrent();		
-		
+		var value = this.getCurrent();
+
     if (!this.callback || value === this.lastValue) {
       return;
     }
@@ -143,10 +146,10 @@ export class PromiseObserver {
 		this.callback = callback;
     return () => this.callback = null;
 	}
-	
+
 	dispose() {
 		this.callback = null;
-		this.promise = null;
+		this.observable = null;
     this.lastValue = null;
 	}
 }

@@ -1,44 +1,42 @@
 System.config({
-  "transpiler": "babel",
-  "babelOptions": {
+  defaultJSExtensions: true,
+  transpiler: "babel",
+  babelOptions: {
     "optional": [
       "runtime",
       "es7.decorators",
       "es7.classProperties"
     ]
   },
-  "paths": {
-    "*": "*.js",
-    "github:*": "jspm_packages/github/*.js",
-    "aurelia-binding/*": "dist/*.js",
-    "npm:*": "jspm_packages/npm/*.js"
-  }
-});
+  paths: {
+    "github:*": "jspm_packages/github/*",
+    "aurelia-async/*": "dist/*.js",
+    "npm:*": "jspm_packages/npm/*"
+  },
 
-System.config({
-  "map": {
-    "aurelia-binding": "github:aurelia/binding@0.8.2",
-    "babel": "npm:babel-core@5.8.3",
-    "babel-runtime": "npm:babel-runtime@5.8.3",
+  map: {
+    "aurelia-binding": "github:aurelia/binding@0.8.6",
+    "babel": "npm:babel-core@5.8.22",
+    "babel-runtime": "npm:babel-runtime@5.8.20",
     "core-js": "npm:core-js@0.9.18",
-    "github:aurelia/binding@0.8.2": {
-      "aurelia-dependency-injection": "github:aurelia/dependency-injection@0.9.0",
-      "aurelia-metadata": "github:aurelia/metadata@0.7.0",
-      "aurelia-task-queue": "github:aurelia/task-queue@0.6.0",
+    "github:aurelia/binding@0.8.6": {
+      "aurelia-dependency-injection": "github:aurelia/dependency-injection@0.9.2",
+      "aurelia-metadata": "github:aurelia/metadata@0.7.3",
+      "aurelia-task-queue": "github:aurelia/task-queue@0.6.2",
       "core-js": "npm:core-js@0.9.18"
     },
-    "github:aurelia/dependency-injection@0.9.0": {
-      "aurelia-logging": "github:aurelia/logging@0.6.1",
-      "aurelia-metadata": "github:aurelia/metadata@0.7.0",
+    "github:aurelia/dependency-injection@0.9.2": {
+      "aurelia-logging": "github:aurelia/logging@0.6.4",
+      "aurelia-metadata": "github:aurelia/metadata@0.7.3",
       "core-js": "npm:core-js@0.9.18"
     },
-    "github:aurelia/metadata@0.7.0": {
+    "github:aurelia/metadata@0.7.3": {
       "core-js": "npm:core-js@0.9.18"
     },
     "github:jspm/nodelibs-process@0.1.1": {
       "process": "npm:process@0.10.1"
     },
-    "npm:babel-runtime@5.8.3": {
+    "npm:babel-runtime@5.8.20": {
       "process": "github:jspm/nodelibs-process@0.1.1"
     },
     "npm:core-js@0.9.18": {
@@ -48,4 +46,3 @@ System.config({
     }
   }
 });
-

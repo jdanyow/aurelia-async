@@ -17,7 +17,7 @@ gulp.task('build-index', function(){
     'index.js',
     'parser.js',
     'parser-implementation.js',
-    'promise-observer.js'
+    'async-observer.js'
     ].map(function(file){
       return paths.root + file;
   });
