@@ -2,9 +2,23 @@
 
 [![Join the chat at https://gitter.im/aurelia/discuss](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/aurelia/discuss?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-This library is an **experimental** plugin for the [Aurelia](http://www.aurelia.io/) platform enabling asynchronous data-binding.  The current version supports binding to Promises only.  Other async patterns are planned for future releases.
+This library is an **experimental** plugin for the [Aurelia](http://www.aurelia.io/) platform enabling asynchronous data-binding.  The current version supports binding to Rx Observables and Promises.  Other async patterns are planned for future releases.
 
 ## Usage:
+
+Binding to an Rx observable:
+```html
+<template>
+  ${mouse..value.clientX}, ${mouse..value.clientY}
+</template>
+```
+```javascript
+import Rx from 'rx';
+
+export class App {
+  mouse = Rx.Observable.fromEvent(document, 'mousemove');
+}
+```
 
 Binding to a promised value:
 ```html
