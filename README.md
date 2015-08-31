@@ -19,6 +19,7 @@ export class App {
   mouse = Rx.Observable.fromEvent(document, 'mousemove');
 }
 ```
+[Live Plunker](http://plnkr.co/edit/AZCI0BOa5rtNAqyBGwn7?p=preview)
 
 Binding to a promised value:
 ```html
