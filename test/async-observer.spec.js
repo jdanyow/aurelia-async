@@ -17,7 +17,7 @@ describe('AsyncObserver', () => {
       expect(callback).toHaveBeenCalledWith('foo');
       observer.dispose();
       done();
-    });
+    }, 100);
   });
 
   it('Stops observing promises after disposing', done => {
@@ -36,7 +36,7 @@ describe('AsyncObserver', () => {
     setTimeout(() => {
       expect(callback.calls.any()).toBe(false);
       done();
-    });
+    }, 100);
   });
 
   it('Observes Rx observables', done => {
@@ -62,9 +62,9 @@ describe('AsyncObserver', () => {
         setTimeout(() => {
           expect(callback.calls.any()).toBe(false);
           done();
-        });
-      });
-    });
+        }, 100);
+      }, 100);
+    }, 100);
   });
 
   it('Handles observable instance changes', done => {
@@ -89,6 +89,6 @@ describe('AsyncObserver', () => {
       expect(callback).toHaveBeenCalledWith('foo');
       observer.dispose();
       done();
-    });
+    }, 100);
   });
 });
