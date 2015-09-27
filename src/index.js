@@ -1,6 +1,14 @@
-import {Parser as StandardParser} from 'aurelia-binding';
-import {Parser} from './parser';
+import {Parser} from 'aurelia-binding';
+
+function parse(input) {
+  input = input || '';
+
+  return this.cache[input]
+    || (this.cache[input] = new ParserImplementation(this.lexer, input).parseChain());
+}
 
 export function configure(frameworkConfig) {
-  frameworkConfig.container.autoRegister(Parser, StandardParser);
+  // override the parse method.
+  let parser = frameworkConfig.container.get(Parser);
+  parser.parse = parse;
 }

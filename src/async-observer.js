@@ -1,29 +1,16 @@
 export class AsyncObserver {
 	constructor(observable, observer, ready) {
 		this.observable = observable;
+		this.observer = observer;
     this.ready = ready;
-    this.lastValue = this.getCurrent();
-
-		if (observer) {
-			observer.subscribe(observable => {
-        if (observable === this.observable) {
-					return;
-				}
-				this.observable = observable;
-				this.attach();
-        this.notify();
-			});
-		}
-
-		this.attach();
 	}
 
 	attach() {
-		var observable = this.observable;
+		let observable = this.observable = (this.observer ? this.observer.getValue() : this.observable);
 		if (!observable) {
 			return;
 		}
-		var subscribe = observable.subscribeOnNext || observable.then;
+		let subscribe = observable.subscribeOnNext || observable.then;
     if (subscribe) {
 			subscribe.call(observable, value => {
 				if (observable !== this.observable) {
@@ -38,31 +25,53 @@ export class AsyncObserver {
 	}
 
 	getCurrent() {
-		if (this.observable) {
-			return this.ready ? this.observable.hasOwnProperty('__value') : this.observable.__value;
+		let observable = this.observable = (this.observer ? this.observer.getValue() : this.observable);
+		if (observable) {
+			return this.ready ? observable.hasOwnProperty('__value') : observable.__value;
 		}
 		return this.ready ? false : undefined;
 	}
 
   notify() {
-		var value = this.getCurrent();
+		let newValue = this.getCurrent();
+		let oldValue = this.lastValue;
 
-    if (!this.callback || value === this.lastValue) {
+    if (!this.context || newValue === oldValue) {
       return;
     }
 
-    this.lastValue = value;
-		this.callback(value);
+		this.lastValue = newValue;
+		this.callable.call(this.context, newValue, oldValue);
   }
 
-	subscribe(callback) {
-		this.callback = callback;
-    return () => this.callback = null;
+	call(context, newValue, oldValue) {
+		if (newValue === this.observable) {
+			return;
+		}
+		this.observable = newValue;
+		this.attach();
+		this.notify();
 	}
 
-	dispose() {
-		this.callback = null;
-		this.observable = null;
-    this.lastValue = null;
+	subscribe(context, callable) {
+		this.context = context;
+		this.callable = callable;
+
+		if (this.observer) {
+	    this.lastValue = this.getCurrent();
+			this.observer.subscribe('AsyncObserver', this);
+		}
+
+		this.attach();
+	}
+
+	unsubscribe(context, callable) {
+		this.context = null;
+		this.callable = null;
+
+		if (this.observer) {
+			this.lastValue = undefined;
+			this.observer.unsubscribe('AsyncObserver', this);
+		}
 	}
 }

@@ -1,6 +1,7 @@
-import {Parser} from '../src/parser';
+import {ParserImplementation} from '../src/parser-implementation';
 import {AsyncExpression} from '../src/async-expression';
 import {
+  Lexer,
   AccessMember,
   AccessScope,
   ValueConverter,
@@ -8,9 +9,15 @@ import {
 } from 'aurelia-binding';
 
 describe('Parser', () => {
+  let lexer = new Lexer();
   let parser;
   beforeAll(() => {
-    parser = new Parser();
+    parser = {
+      parse: (input) => {
+        input = input || '';
+        return new ParserImplementation(lexer, input).parseChain();
+      }
+    }
   });
 
   it('parses standard expressions', () => {

@@ -13,11 +13,10 @@ var tools = require('aurelia-tools');
 gulp.task('build-index', function(){
   var importsToAdd = [];
   var files = [
+    'async-observer.js',
     'async-expression.js',
-    'index.js',
-    'parser.js',
     'parser-implementation.js',
-    'async-observer.js'
+    'index.js'
     ].map(function(file){
       return paths.root + file;
   });

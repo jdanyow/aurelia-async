@@ -1,12 +1,18 @@
-import {Parser} from '../src/parser';
+import {ParserImplementation} from '../src/parser-implementation';
 import {AsyncExpression} from '../src/async-expression';
 import {AsyncObserver} from '../src/async-observer';
-import {Binding} from 'aurelia-binding';
+import {Lexer} from 'aurelia-binding';
 
 describe('AsyncExpression', () => {
+  let lexer = new Lexer();
   let parser;
   beforeAll(() => {
-    parser = new Parser();
+    parser = {
+      parse: (input) => {
+        input = input || '';
+        return new ParserImplementation(lexer, input).parseChain();
+      }
+    }
   });
 
   it('evaluates', () => {

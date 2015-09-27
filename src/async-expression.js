@@ -9,7 +9,7 @@ export class AsyncExpression extends Expression {
   }
 
   evaluate(scope, valueConverters) {
-    var observable = this.expression.evaluate(scope);
+    let observable = this.expression.evaluate(scope);
     if (observable) {
       return this.ready ? observable.hasOwnProperty('__value') : observable.__value;
     }
@@ -22,7 +22,7 @@ export class AsyncExpression extends Expression {
   }
 
   connect(binding, scope) {
-    var info = this.expression.connect(binding, scope);
+    let info = this.expression.connect(binding, scope);
     return {
       value: info.value ? info.value.__value : undefined,
       observer: new AsyncObserver(info.value, info.observer, this.ready)
