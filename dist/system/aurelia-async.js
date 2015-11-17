@@ -1,29 +1,122 @@
 System.register(['aurelia-binding'], function (_export) {
   'use strict';
 
-  var Expression, StandardParser, StandardParserImplementation, CallMember, AccessMember, AccessKeyed, CallFunction, AsyncExpression, Parser, ParserImplementation, AsyncObserver;
+  var Expression, StandardParserImplementation, CallMember, AccessMember, AccessKeyed, CallFunction, Parser, AsyncObserver, AsyncExpression, ParserImplementation;
 
   _export('configure', configure);
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function parse(input) {
+    input = input || '';
+
+    return this.cache[input] || (this.cache[input] = new ParserImplementation(this.lexer, input).parseChain());
+  }
+
   function configure(frameworkConfig) {
-    frameworkConfig.container.autoRegister(Parser, StandardParser);
+    var parser = frameworkConfig.container.get(Parser);
+    parser.parse = parse;
   }
 
   return {
     setters: [function (_aureliaBinding) {
       Expression = _aureliaBinding.Expression;
-      StandardParser = _aureliaBinding.Parser;
       StandardParserImplementation = _aureliaBinding.ParserImplementation;
       CallMember = _aureliaBinding.CallMember;
       AccessMember = _aureliaBinding.AccessMember;
       AccessKeyed = _aureliaBinding.AccessKeyed;
       CallFunction = _aureliaBinding.CallFunction;
+      Parser = _aureliaBinding.Parser;
     }],
     execute: function () {
+      AsyncObserver = (function () {
+        function AsyncObserver(observable, observer, ready) {
+          _classCallCheck(this, AsyncObserver);
+
+          this.observable = observable;
+          this.observer = observer;
+          this.ready = ready;
+        }
+
+        AsyncObserver.prototype.attach = function attach() {
+          var _this = this;
+
+          var observable = this.observable = this.observer ? this.observer.getValue() : this.observable;
+          if (!observable) {
+            return;
+          }
+          var subscribe = observable.subscribeOnNext || observable.then;
+          if (subscribe) {
+            subscribe.call(observable, function (value) {
+              if (observable !== _this.observable) {
+                return;
+              }
+              observable.__value = value;
+              _this.notify();
+            });
+            return;
+          }
+          throw new Error('Object is not "promise-like" or "observable-like".');
+        };
+
+        AsyncObserver.prototype.getCurrent = function getCurrent() {
+          var observable = this.observable = this.observer ? this.observer.getValue() : this.observable;
+          if (observable) {
+            return this.ready ? observable.hasOwnProperty('__value') : observable.__value;
+          }
+          return this.ready ? false : undefined;
+        };
+
+        AsyncObserver.prototype.notify = function notify() {
+          var newValue = this.getCurrent();
+          var oldValue = this.lastValue;
+
+          if (!this.context || newValue === oldValue) {
+            return;
+          }
+
+          this.lastValue = newValue;
+          this.callable.call(this.context, newValue, oldValue);
+        };
+
+        AsyncObserver.prototype.call = function call(context, newValue, oldValue) {
+          if (newValue === this.observable) {
+            return;
+          }
+          this.observable = newValue;
+          this.attach();
+          this.notify();
+        };
+
+        AsyncObserver.prototype.subscribe = function subscribe(context, callable) {
+          this.context = context;
+          this.callable = callable;
+
+          if (this.observer) {
+            this.lastValue = this.getCurrent();
+            this.observer.subscribe('AsyncObserver', this);
+          }
+
+          this.attach();
+        };
+
+        AsyncObserver.prototype.unsubscribe = function unsubscribe(context, callable) {
+          this.context = null;
+          this.callable = null;
+
+          if (this.observer) {
+            this.lastValue = undefined;
+            this.observer.unsubscribe('AsyncObserver', this);
+          }
+        };
+
+        return AsyncObserver;
+      })();
+
+      _export('AsyncObserver', AsyncObserver);
+
       AsyncExpression = (function (_Expression) {
         _inherits(AsyncExpression, _Expression);
 
@@ -60,26 +153,6 @@ System.register(['aurelia-binding'], function (_export) {
       })(Expression);
 
       _export('AsyncExpression', AsyncExpression);
-
-      Parser = (function (_StandardParser) {
-        _inherits(Parser, _StandardParser);
-
-        function Parser() {
-          _classCallCheck(this, Parser);
-
-          _StandardParser.apply(this, arguments);
-        }
-
-        Parser.prototype.parse = function parse(input) {
-          input = input || '';
-
-          return this.cache[input] || (this.cache[input] = new ParserImplementation(this.lexer, input).parseChain());
-        };
-
-        return Parser;
-      })(StandardParser);
-
-      _export('Parser', Parser);
 
       ParserImplementation = (function (_StandardParserImplementation) {
         _inherits(ParserImplementation, _StandardParserImplementation);
@@ -131,89 +204,6 @@ System.register(['aurelia-binding'], function (_export) {
       })(StandardParserImplementation);
 
       _export('ParserImplementation', ParserImplementation);
-
-      AsyncObserver = (function () {
-        function AsyncObserver(observable, observer, ready) {
-          var _this = this;
-
-          _classCallCheck(this, AsyncObserver);
-
-          this.observable = observable;
-          this.ready = ready;
-          this.lastValue = this.getCurrent();
-
-          if (observer) {
-            observer.subscribe(function (observable) {
-              if (observable === _this.observable) {
-                return;
-              }
-              _this.observable = observable;
-              _this.attach();
-              _this.notify();
-            });
-          }
-
-          this.attach();
-        }
-
-        AsyncObserver.prototype.attach = function attach() {
-          var _this2 = this;
-
-          var observable = this.observable;
-          if (!observable) {
-            return;
-          }
-          var subscribe = observable.subscribeOnNext || observable.then;
-          if (subscribe) {
-            subscribe.call(observable, function (value) {
-              if (observable !== _this2.observable) {
-                return;
-              }
-              observable.__value = value;
-              _this2.notify();
-            });
-            return;
-          }
-          throw new Error('Object is not "promise-like" or "observable-like".');
-        };
-
-        AsyncObserver.prototype.getCurrent = function getCurrent() {
-          if (this.observable) {
-            return this.ready ? this.observable.hasOwnProperty('__value') : this.observable.__value;
-          }
-          return this.ready ? false : undefined;
-        };
-
-        AsyncObserver.prototype.notify = function notify() {
-          var value = this.getCurrent();
-
-          if (!this.callback || value === this.lastValue) {
-            return;
-          }
-
-          this.lastValue = value;
-          this.callback(value);
-        };
-
-        AsyncObserver.prototype.subscribe = function subscribe(callback) {
-          var _this3 = this;
-
-          this.callback = callback;
-          return function () {
-            return _this3.callback = null;
-          };
-        };
-
-        AsyncObserver.prototype.dispose = function dispose() {
-          this.callback = null;
-          this.observable = null;
-          this.lastValue = null;
-        };
-
-        return AsyncObserver;
-      })();
-
-      _export('AsyncObserver', AsyncObserver);
     }
   };
 });
