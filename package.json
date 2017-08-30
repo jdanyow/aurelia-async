@@ -14,7 +14,7 @@
   },
   "license": "MIT",
   "author": "Jeremy Danyow <jdanyow@gmail.com> (http://danyow.net/)",
-  "main": "dist/commonjs/index.js",
+  "main": "dist/commonjs/aurelia-async.js",
   "repository": {
     "type": "git",
     "url": "http://github.com/jdanyow/aurelia-async"
